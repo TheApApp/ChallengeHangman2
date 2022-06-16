@@ -32,7 +32,7 @@ class ViewController: UIViewController {
     var hangManLabel: UILabel!
     var letterButtons = [UIButton]()
 
-    var usedLetters = [Character]()
+    var usedLetters = [String]()
     var solution = ""
     var currentGuess = ""
     var hangText = """
@@ -53,7 +53,7 @@ class ViewController: UIViewController {
     }
 
     var badGuesses = 0
-    let alphabet = ["a","b","c","d","e","f","g","h","i","j","j","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"]
+    let alphabet = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"]
 
     var words = [String]()
 
@@ -157,9 +157,9 @@ class ViewController: UIViewController {
     }
 
     func restartGame(action: UIAlertAction) {
-        score = 0
         badGuesses = 0
         hangManLabel.text = hangText
+        usedLetters.removeAll()
 
         for button in letterButtons {
             button.isHidden = false
@@ -167,51 +167,44 @@ class ViewController: UIViewController {
         startGame()
     }
 
+    func quitGame(action: UIAlertAction) {
+        exit(0)
+    }
+
     @objc func buttonPressed(_ sender: UIButton) {
         guard let buttonTitle = sender.titleLabel?.text else { return }
 
+        usedLetters.append(buttonTitle)
         var promptWord = ""
-
-//        for letter in solution {
-//            let strLetter = String(letter).lowercased()
-//            print("StrLetter is \(strLetter)")
-//            if !(strLetter == "?") {
-//                if buttonTitle.contains(letter) {
-//                    promptWord += strLetter
-//                    print("If promptWord = \(promptWord) contains \(strLetter)")
-//                } else {
-//                    promptWord += "?"
-//                }
-//            } else {
-//                promptWord += strLetter
-//                print("Else promptWord = \(promptWord) contains \(strLetter)")
-//            }
-//        }
 
         for letter in solution {
             let strLetter = String(letter).lowercased()
-            print("StrLetter is \(strLetter)")
-            if !(strLetter == "?") {
-                if buttonTitle.contains(letter) {
-                    promptWord += strLetter
-                    print("If promptWord = \(promptWord) contains \(strLetter)")
-                } else {
-                    promptWord += "?"
-                }
-            } else {
+
+            if usedLetters.contains(strLetter) {
                 promptWord += strLetter
-                print("Else promptWord = \(promptWord) contains \(strLetter)")
+            } else {
+                promptWord += "?"
             }
         }
 
         sender.isHidden = true
-        if !solution.contains(buttonTitle) {
-            badGuesses += 1
-            hangManLabel.text = hangedMan(badGuesses: badGuesses)
-            if badGuesses >= 7 {
-                let ac = UIAlertController(title: "You lost!", message: "Let's play another game.", preferredStyle: .alert)
-                ac.addAction(UIAlertAction(title: "Let's Go!", style: .default, handler: restartGame))
-                present(ac, animated: true)
+
+        if promptWord == solution {
+            //
+            score += 1
+            let ac = UIAlertController(title: "Yeah!", message: "You won! Want to play another game?", preferredStyle: .alert)
+            ac.addAction(UIAlertAction(title: "Let's Go!", style: .default, handler: restartGame))
+            ac.addAction(UIAlertAction(title: "Nope", style: .cancel, handler: quitGame))
+            present(ac, animated: true)
+        } else {
+            if !solution.contains(buttonTitle) {
+                badGuesses += 1
+                hangManLabel.text = hangedMan(badGuesses: badGuesses)
+                if badGuesses >= 7 {
+                    let ac = UIAlertController(title: "You lost!", message: "Let's play another game.", preferredStyle: .alert)
+                    ac.addAction(UIAlertAction(title: "Let's Go!", style: .default, handler: restartGame))
+                    present(ac, animated: true)
+                }
             }
         }
         currentGuess = promptWord
